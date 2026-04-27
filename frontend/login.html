@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urjotsav - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-center items-center">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full mx-4">
+        <h2 class="text-3xl font-extrabold text-center mb-6 text-indigo-600">Login</h2>
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700">Username</label>
+                <input type="text" id="username" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700">Password</label>
+                <input type="password" id="password" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <p id="login-error" class="text-red-500 text-sm hidden"></p>
+            <button type="submit" class="w-full bg-indigo-600 text-white font-bold rounded-lg px-4 py-3 hover:bg-indigo-700 transition">Sign In</button>
+        </form>
+        <p class="mt-4 text-center text-sm text-gray-600">Don't have an account? <a href="/register.html" class="text-indigo-600 font-semibold hover:underline">Register</a></p>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            
+            try {
+                const data = await apiCall("/auth/login", "POST", { username, password });
+                setToken(data.access_token);
+                const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+                if (payload.role === "admin") {
+                    window.location.href = "/admin.html";
+                } else if (payload.role === "faculty") {
+                    window.location.href = "/faculty.html";
+                } else {
+                    window.location.href = "/student.html";
+                }
+            } catch (error) {
+                const errEl = document.getElementById("login-error");
+                errEl.textContent = error.message;
+                errEl.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>

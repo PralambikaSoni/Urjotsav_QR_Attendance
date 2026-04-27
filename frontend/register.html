@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urjotsav - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center items-center py-10">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
+        <h2 class="text-3xl font-extrabold text-center mb-6 text-indigo-600">Student Register</h2>
+        <form id="reg-form" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700">Full Name</label>
+                    <input type="text" id="full_name" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Email Address (Optional)</label>
+                    <input type="email" id="email" class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Phone Number</label>
+                    <input type="tel" id="phone" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Username</label>
+                    <input type="text" id="username" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Password</label>
+                    <input type="password" id="password" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700">Enrollment Number</label>
+                    <input type="text" id="enrollment" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Branch</label>
+                    <select id="branch" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                        <option value="" disabled selected>Select Branch</option>
+                        <option value="CSE">CSE</option>
+                        <option value="AIDS">AIDS</option>
+                        <option value="AIML">AIML</option>
+                        <option value="IOT">IOT</option>
+                        <option value="EE">EE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="CE">CE</option>
+                        <option value="ME">ME</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                    </select>
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Year</label>
+                    <select id="year" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                        <option value="" disabled selected>Select Year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Semester (Auto)</label>
+                    <input type="text" id="semester" disabled class="mt-1 block w-full bg-gray-200 border border-gray-300 text-gray-500 rounded-lg px-4 py-2">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700">Section</label>
+                    <input type="text" id="section" placeholder="e.g. A" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700">Activity Domain</label>
+                    <input type="text" id="activity" placeholder="e.g. Web Dev, Dance, Management" required class="mt-1 block w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            
+            <p id="reg-error" class="text-red-500 text-sm hidden"></p>
+            <button type="submit" class="w-full bg-indigo-600 text-white font-bold rounded-lg px-4 py-3 hover:bg-indigo-700 transition">Create Account</button>
+        </form>
+        <p class="mt-4 text-center text-sm text-gray-600">Already registered? <a href="/login.html" class="text-indigo-600 font-semibold hover:underline">Login here</a></p>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.getElementById("year").addEventListener("change", (e) => {
+            const yearStr = e.target.value;
+            const month = new Date().getMonth() + 1; // 1=Jan, 4=Apr
+            const isEven = month >= 1 && month <= 6; // Adjust logic for your locale's academic calendar. Usually India Evens are Jan-June
+            
+            let baseSem = 1;
+            if (yearStr === "2nd Year") baseSem = 3;
+            else if (yearStr === "3rd Year") baseSem = 5;
+            else if (yearStr === "4th Year") baseSem = 7;
+            
+            const sem = isEven ? (baseSem + 1) : baseSem;
+            
+            const suffixes = ["th", "st", "nd", "rd"];
+            const remainder = sem % 10;
+            const suffix = (sem % 100 >= 11 && sem % 100 <= 13) ? "th" : (suffixes[remainder] || "th");
+            document.getElementById("semester").value = sem + suffix + " Semester";
+        });
+
+        document.getElementById("reg-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const payload = {
+                full_name: document.getElementById("full_name").value,
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+                email: document.getElementById("email").value || null,
+                enrollment_number: document.getElementById("enrollment").value,
+                phone_number: document.getElementById("phone").value,
+                branch: document.getElementById("branch").value,
+                year: document.getElementById("year").value,
+                semester: document.getElementById("semester").value,
+                section: document.getElementById("section").value,
+                activity: document.getElementById("activity").value,
+                role: "student"
+            };
+            
+            try {
+                // Register
+                await apiCall("/auth/register", "POST", payload);
+                // Auto login after success
+                const loginData = await apiCall("/auth/login", "POST", { username: payload.username, password: payload.password });
+                setToken(loginData.access_token);
+                window.location.href = "/dashboard.html";
+            } catch (error) {
+                const errEl = document.getElementById("reg-error");
+                errEl.textContent = error.message;
+                errEl.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>

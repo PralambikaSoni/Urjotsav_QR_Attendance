@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urjotsav Student Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .tab-btn.active { background-color: #1e3a8a; color: white; border-left: 4px solid #60a5fa; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-sm">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white flex flex-col h-full shadow-2xl z-20">
+        <div class="px-6 py-6 border-b border-blue-800">
+            <h1 class="text-2xl font-extrabold tracking-wider text-blue-400">Urjotsav Portal</h1>
+            <p class="text-xs text-blue-200 mt-1" id="student-name-display">Student Dashboard</p>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('tab-dashboard')" class="tab-btn active w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition" id="nav-dashboard">Dashboard Summary</button>
+            <button onclick="switchTab('tab-scanner')" class="tab-btn w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition bg-blue-800 border border-blue-400" id="nav-scanner">🔲 Scan QR Code</button>
+            <button onclick="switchTab('tab-history')" class="tab-btn w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition" id="nav-history">Attendance History</button>
+            <button onclick="switchTab('tab-events')" class="tab-btn w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition" id="nav-events">Event Participation</button>
+            <button onclick="switchTab('tab-achievements')" class="tab-btn w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition" id="nav-achievements">Achievements</button>
+            <button onclick="switchTab('tab-profile')" class="tab-btn w-full text-left px-4 py-3 rounded font-medium hover:bg-blue-800 transition" id="nav-profile">My Profile</button>
+        </nav>
+        <div class="p-4 border-t border-blue-800">
+            <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded transition shadow-md">Secure Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 bg-gray-50 overflow-y-auto w-full relative pt-6 pb-12 px-8">
+        <div id="loading" class="text-center py-20 text-gray-500 font-bold text-xl animate-pulse">Synchronizing Academic Record...</div>
+        
+        <div class="hidden space-y-6" id="student-container">
+            <!-- TAB: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-pane space-y-6">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">Welcome back, <span id="dash-name" class="text-blue-600"></span>!</h2>
+                    <p class="text-gray-500 mt-1">Here is the brief overview of your Urjotsav technical engagement.</p>
+                </header>
+
+                <div class="bg-white p-6 shadow-sm rounded-xl border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-gray-700">Overall Attendance Progress</h3>
+                        <span id="pb-text" class="font-bold text-blue-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4">
+                        <div id="pb-fill" class="bg-blue-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards"></div>
+            </div>
+
+            <!-- TAB: SCANNER -->
+            <div id="tab-scanner" class="tab-pane hidden space-y-6">
+                <div class="bg-white p-6 shadow-sm rounded-xl border border-gray-200 max-w-lg mx-auto flex flex-col items-center">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Scan Attendance</h3>
+                    <p class="text-gray-500 text-center text-xs mb-6 px-4">Point your device camera at the Secure QR issued natively by your Faculty coordinator to mark present.</p>
+                    
+                    <div id="qr-reader" class="w-full bg-white rounded-xl overflow-hidden shadow-inner border border-gray-200 p-2"></div>
+                    
+                    <div id="scan-status" class="mt-6 w-full text-center px-4 py-3 rounded font-bold text-sm hidden"></div>
+                </div>
+            </div>
+
+            <!-- TAB: HISTORY -->
+            <div id="tab-history" class="tab-pane hidden space-y-4">
+                <div class="bg-white p-6 shadow-sm rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">Your Timestamped Attendance Logs</h3>
+                    <div class="flex flex-col md:flex-row justify-between mb-4 gap-4">
+                        <input type="text" id="hist-search" onkeyup="filterHistory()" placeholder="Filter by event name..." class="border border-gray-300 rounded-lg p-2 focus:ring-blue-500 w-full md:w-1/3">
+                    </div>
+                    <div class="overflow-x-auto rounded">
+                        <table class="min-w-full divide-y divide-gray-200 border">
+                            <thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left font-bold text-gray-600">Event Marked</th><th class="px-4 py-3 text-left font-bold text-gray-600">Status</th><th class="px-4 py-3 text-left font-bold text-gray-600">Date & Time (IST)</th></tr></thead>
+                            <tbody id="table-history" class="divide-y divide-gray-100 bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: EVENTS -->
+            <div id="tab-events" class="tab-pane hidden space-y-4">
+                <div class="bg-white p-6 shadow-sm rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">Institutional Events Overview</h3>
+                    <p class="text-gray-500 text-sm mb-4">View your participation footprint across all defined college engagements.</p>
+                    <div class="overflow-x-auto rounded">
+                        <table class="min-w-full divide-y divide-gray-200 border">
+                            <thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left font-bold text-gray-600">Event Title & Details</th><th class="px-4 py-3 text-left font-bold text-gray-600">Your Action Status</th></tr></thead>
+                            <tbody id="table-events" class="divide-y divide-gray-100 bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ACHIEVEMENTS -->
+            <div id="tab-achievements" class="tab-pane hidden space-y-4">
+                <div class="bg-white p-6 shadow-sm rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-amber-500 border-b pb-2 border-amber-200">Your Declared Achievements 🏆</h3>
+                    <ul id="list-achievements" class="space-y-3"></ul>
+                </div>
+            </div>
+
+            <!-- TAB: PROFILE -->
+            <div id="tab-profile" class="tab-pane hidden space-y-4">
+                <div class="bg-white p-8 shadow-sm rounded-xl border border-gray-200 max-w-2xl">
+                    <h3 class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">Academic Profile</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Full Legal Name</p><p class="text-lg font-bold text-gray-800" id="prof-name"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Enrollment Number</p><p class="text-lg font-mono text-gray-800" id="prof-roll"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Branch / Major</p><p class="text-lg font-bold text-blue-600" id="prof-branch"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Year</p><p class="text-lg font-semibold text-gray-800" id="prof-year"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Semester</p><p class="text-lg font-semibold text-gray-800" id="prof-sem"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Extracurricular Domain</p><p class="text-lg font-semibold text-indigo-600" id="prof-activity"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Email Address</p><p class="text-lg font-semibold text-gray-600" id="prof-email"></p></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Phone Contact</p><p class="text-lg font-semibold text-gray-600" id="prof-phone"></p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/student.js"></script>
+</body>
+</html>
