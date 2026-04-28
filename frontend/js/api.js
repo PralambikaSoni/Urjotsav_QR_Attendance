@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000/api"; // Defaulting to full path for rapid dev testing
+const API_BASE = window.location.protocol === "file:" ? "http://localhost:8000/api" : "/api";
 
 function getToken() { return localStorage.getItem("urjotsav_token"); }
 function setToken(token) { localStorage.setItem("urjotsav_token", token); }
@@ -20,8 +20,16 @@ async function apiCall(endpoint, method="GET", body=null) {
         }
     }
     
-    const res = await fetch(`${API_BASE}${endpoint}`, { method, headers, body: requestBody });
+    const fetchOptions = { method, headers, body: requestBody };
+    if (method === "GET") {
+        fetchOptions.cache = "no-store";
+    }
+    const res = await fetch(`${API_BASE}${endpoint}`, fetchOptions);
     if (!res.ok) {
+        if (res.status === 401 && !endpoint.includes('login')) {
+            logout();
+            return;
+        }
         const err = await res.json().catch(()=>({}));
         throw new Error(err.detail || "API request failed");
     }

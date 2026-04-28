@@ -3,9 +3,26 @@ let qrRefreshInterval = null;
 let currentActiveEventId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) {
+        window.location.href = "login.html";
+        return;
+    }
     switchTab('tab-dashboard');
     initFaculty();
+    setInterval(refreshFacultyData, 5000);
 });
+
+async function refreshFacultyData() {
+    try {
+        facultyData = await apiCall("/events/faculty-analytics");
+        renderKPIs();
+        renderEvents();
+        renderAttendance();
+        renderWinners();
+    } catch(err) {
+        console.error("Background data sync failed", err);
+    }
+}
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
@@ -63,10 +80,11 @@ function renderKPIs() {
     `;
 
     const allAttList = facultyData.events.flatMap(e => e.attendance.map(a => ({...a, event_name: e.name})))
-                        .sort((a,b) => new Date(b.scanned_at) - new Date(a.scanned_at)).slice(0, 50);
+                        .sort((a,b) => new Date(b.scanned_at || 0) - new Date(a.scanned_at || 0)).slice(0, 50);
                         
     document.getElementById("dash-realtime-logs").innerHTML = allAttList.map(a => {
-        const dObj = new Date(a.scanned_at.endsWith('Z') ? a.scanned_at : a.scanned_at + 'Z');
+        const scannedAt = a.scanned_at || "";
+        const dObj = new Date(scannedAt.endsWith('Z') ? scannedAt : scannedAt + 'Z');
         return `<div class="border-b border-gray-100 pb-2"><p class="text-xs text-gray-400 font-mono">${dObj.toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})}</p><p class="text-sm font-bold text-gray-800">${a.student_name} (${a.enrollment})</p><p class="text-xs text-emerald-600">Marked present for ${a.event_name}</p></div>`;
     }).join("");
 }
@@ -153,10 +171,11 @@ async function generateQR() {
 
 function renderAttendance() {
     const allAttList = facultyData.events.flatMap(e => e.attendance.map(a => ({...a, event_name: e.name})))
-                        .sort((a,b) => new Date(b.scanned_at) - new Date(a.scanned_at));
+                        .sort((a,b) => new Date(b.scanned_at || 0) - new Date(a.scanned_at || 0));
                         
     document.getElementById("table-attendance").innerHTML = allAttList.map(a => {
-        const dObj = new Date(a.scanned_at.endsWith('Z') ? a.scanned_at : a.scanned_at + 'Z');
+        const scannedAt = a.scanned_at || "";
+        const dObj = new Date(scannedAt.endsWith('Z') ? scannedAt : scannedAt + 'Z');
         return `
             <tr class="hover:bg-gray-50 border-b">
                 <td class="px-4 py-3 whitespace-nowrap font-bold text-gray-800">${a.event_name}</td>
@@ -215,5 +234,5 @@ document.getElementById("form-winner")?.addEventListener("submit", async(e) => {
 
 window.logout = () => {
     localStorage.removeItem("urjotsav_token");
-    window.location.href = "/login.html";
+    window.location.href = "login.html";
 };

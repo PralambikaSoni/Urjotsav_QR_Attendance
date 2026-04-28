@@ -2,6 +2,10 @@ let metricsData = {};
 let charts = {};
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) {
+        window.location.href = "login.html";
+        return;
+    }
     switchTab('tab-dashboard');
     initAdmin();
 });
@@ -18,7 +22,7 @@ function switchTab(tabId) {
 // Global logout for admin panel
 window.logout = () => {
     localStorage.removeItem("urjotsav_token");
-    window.location.href = "/login.html";
+    window.location.href = "login.html";
 };
 
 async function initAdmin() {

@@ -12,6 +12,9 @@ router = APIRouter()
 
 @router.post("/mark")
 async def mark_attendance(payload: schemas.AttendancePayload, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    role_str = str(getattr(current_user.role, 'value', current_user.role)).lower()
+    if role_str != "student" and role_str != "roleenum.student":
+        raise HTTPException(status_code=403, detail=f"Action Restricted: Only students can mark attendance. Your role is {role_str}")
     try:
         token_data = jwt.decode(payload.token, core.SECRET_KEY, algorithms=[core.ALGORITHM])
         event_id = token_data.get("event_id")
@@ -34,13 +37,29 @@ async def mark_attendance(payload: schemas.AttendancePayload, db: AsyncSession =
     # Finalize marking
     new_attendance = models.Attendance(student_id=current_user.id, event_id=event_id)
     db.add(new_attendance)
+    
+    # Log the action for the Realtime Activity Panel
+    log = models.AuditLog(
+        action="ATTENDANCE_MARKED", 
+        user_id=current_user.id, 
+        details=f"Marked present for event ID {event_id}"
+    )
+    db.add(log)
+    
     await db.commit()
     await db.refresh(new_attendance)
     return {"message": "Attendance marked successfully!", "attendance_id": new_attendance.id}
 
 @router.get("/event/{event_id}")
 async def get_event_attendance(event_id: int, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(get_current_faculty)):
-    query = select(models.Attendance, models.User).join(models.User, models.Attendance.student_id == models.User.id).where(models.Attendance.event_id == event_id)
+    query = (
+        select(models.Attendance, models.User)
+        .join(models.User, models.Attendance.student_id == models.User.id)
+        .where(
+            models.Attendance.event_id == event_id,
+            models.User.role == models.RoleEnum.STUDENT
+        )
+    )
     result = await db.execute(query)
     
     attendance_records = []

@@ -84,7 +84,7 @@
         <p class="mt-4 text-center text-sm text-gray-600">Already registered? <a href="/login.html" class="text-indigo-600 font-semibold hover:underline">Login here</a></p>
     </div>
 
-    <script src="/js/api.js"></script>
+    <script src="js/api.js"></script>
     <script>
         document.getElementById("year").addEventListener("change", (e) => {
             const yearStr = e.target.value;
@@ -127,7 +127,7 @@
                 // Auto login after success
                 const loginData = await apiCall("/auth/login", "POST", { username: payload.username, password: payload.password });
                 setToken(loginData.access_token);
-                window.location.href = "/dashboard.html";
+                window.location.href = "student.html";
             } catch (error) {
                 const errEl = document.getElementById("reg-error");
                 errEl.textContent = error.message;

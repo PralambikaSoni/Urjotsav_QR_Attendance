@@ -47,7 +47,11 @@ async def get_analytics(db: AsyncSession = Depends(get_db), current_user: models
     domains = {}
     years = {}
     activities = {}
-    for s in students:
+    
+    # Calculate graph distributions based on ACTUAL attendance records
+    for a in attendance_records:
+        s = a.student
+        if not s: continue
         domains[s.branch] = domains.get(s.branch, 0) + 1
         years[s.year] = years.get(s.year, 0) + 1
         if s.activity:

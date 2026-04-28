@@ -3,6 +3,10 @@ let activeUser = {};
 let html5QrcodeScanner = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) {
+        window.location.href = "login.html";
+        return;
+    }
     switchTab('tab-dashboard');
     initStudent();
 });
@@ -71,12 +75,24 @@ function renderDashboard() {
             <p class="text-3xl font-black text-indigo-500">${s.total_events_system}</p>
         </div>
     `;
+
+    const recentHistory = studentMetrics.attendance.sort((a,b) => new Date(b.scanned_at || 0) - new Date(a.scanned_at || 0)).slice(0, 50);
+    document.getElementById("dash-realtime-logs").innerHTML = recentHistory.map(a => {
+        const scannedAt = a.scanned_at || "";
+        const dObj = new Date(scannedAt.endsWith('Z') ? scannedAt : scannedAt + 'Z');
+        return `<div class="border-b border-gray-100 pb-2"><p class="text-xs text-gray-400 font-mono">${dObj.toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})}</p><p class="text-sm font-bold text-gray-800">${a.event_name}</p><p class="text-xs text-green-600">Marked Present</p></div>`;
+    }).join("");
+    
+    if (recentHistory.length === 0) {
+        document.getElementById("dash-realtime-logs").innerHTML = "<p class='text-gray-500 text-sm'>No attendance logged yet. Visit the Scanner tab!</p>";
+    }
 }
 
 function renderHistory() {
-    const history = studentMetrics.attendance.sort((a,b) => new Date(b.scanned_at) - new Date(a.scanned_at));
+    const history = studentMetrics.attendance.sort((a,b) => new Date(b.scanned_at || 0) - new Date(a.scanned_at || 0));
     document.getElementById("table-history").innerHTML = history.map(h => {
-        const dObj = new Date(h.scanned_at.endsWith('Z') ? h.scanned_at : h.scanned_at + 'Z');
+        const scannedAt = h.scanned_at || "";
+        const dObj = new Date(scannedAt.endsWith('Z') ? scannedAt : scannedAt + 'Z');
         return `
             <tr class="hover:bg-gray-50 border-b border-gray-100">
                 <td class="px-4 py-3 whitespace-nowrap font-bold text-gray-800">${h.event_name}</td>
@@ -154,11 +170,10 @@ function initScannerUI() {
     html5QrcodeScanner.render(onScanSuccess);
 }
 
+let lastScanTime = 0;
 async function onScanSuccess(decodedText) {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear(); // Shutdown camera instantly cleanly on hit
-        html5QrcodeScanner = null;
-    }
+    if (Date.now() - lastScanTime < 4000) return; // Prevent spamming
+    lastScanTime = Date.now();
     
     const statusEl = document.getElementById("scan-status");
     statusEl.classList.remove("hidden");
@@ -170,6 +185,7 @@ async function onScanSuccess(decodedText) {
         statusEl.innerHTML = `✅ Successfully Logged Presentation!<br><span class="text-xs">ID Track: ${res.attendance_id}</span>`;
         statusEl.className = "mt-6 w-full text-center px-4 py-3 rounded font-bold text-sm bg-green-100 text-green-800";
         initStudent(); // Reload data visually in background
+        setTimeout(() => { statusEl.classList.add("hidden"); }, 5000);
     } catch(err) {
         statusEl.className = "mt-6 w-full text-center px-4 py-3 rounded font-bold text-sm bg-red-100 text-red-800";
         if (err.message.includes("Already marked")) {
@@ -179,11 +195,12 @@ async function onScanSuccess(decodedText) {
         } else {
             statusEl.innerHTML = `❌ Scan Error: ${err.message}`;
         }
+        setTimeout(() => { statusEl.classList.add("hidden"); }, 5000);
     }
 }
 
 // Global logout
 window.logout = () => {
     localStorage.removeItem("urjotsav_token");
-    window.location.href = "/login.html";
+    window.location.href = "login.html";
 };

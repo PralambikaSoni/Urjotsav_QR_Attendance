@@ -55,7 +55,15 @@ async def get_faculty_analytics(db: AsyncSession = Depends(get_db), current_user
         return {"summary": {"total_events": 0, "total_attendance": 0}, "events": []}
         
     from sqlalchemy.orm import selectinload
-    res_a = await db.execute(select(models.Attendance).where(models.Attendance.event_id.in_(event_ids)).options(selectinload(models.Attendance.student)))
+    res_a = await db.execute(
+        select(models.Attendance)
+        .join(models.User, models.Attendance.student_id == models.User.id)
+        .where(
+            models.Attendance.event_id.in_(event_ids),
+            models.User.role == models.RoleEnum.STUDENT
+        )
+        .options(selectinload(models.Attendance.student))
+    )
     attendance = res_a.scalars().all()
     
     res_w = await db.execute(select(models.Winner).where(models.Winner.event_id.in_(event_ids)).options(selectinload(models.Winner.student)))

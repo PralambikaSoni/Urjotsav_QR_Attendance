@@ -28,7 +28,7 @@
         <p class="mt-4 text-center text-sm text-gray-600">Don't have an account? <a href="/register.html" class="text-indigo-600 font-semibold hover:underline">Register</a></p>
     </div>
 
-    <script src="/js/api.js"></script>
+    <script src="js/api.js"></script>
     <script>
         document.getElementById("login-form").addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -40,11 +40,11 @@
                 setToken(data.access_token);
                 const payload = JSON.parse(atob(data.access_token.split('.')[1]));
                 if (payload.role === "admin") {
-                    window.location.href = "/admin.html";
+                    window.location.href = "admin.html";
                 } else if (payload.role === "faculty") {
-                    window.location.href = "/faculty.html";
+                    window.location.href = "faculty.html";
                 } else {
-                    window.location.href = "/student.html";
+                    window.location.href = "student.html";
                 }
             } catch (error) {
                 const errEl = document.getElementById("login-error");

@@ -6,7 +6,7 @@ let html5QrcodeScanner = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!getToken()) {
-        window.location.href = "/login.html";
+        window.location.href = "login.html";
         return;
     }
 
@@ -17,18 +17,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         if (currentUser.role === "admin") {
             if (!window.location.pathname.includes('admin.html') && !window.location.search.includes('force=true')) {
-                window.location.href = "/admin.html";
+                window.location.href = "admin.html";
                 return;
             }
             initFacultyDash();
         } else if (currentUser.role === "faculty") {
             if (!window.location.pathname.includes('faculty.html')) {
-                window.location.href = "/faculty.html";
+                window.location.href = "faculty.html";
                 return;
             }
         } else if (currentUser.role === "student") {
             if (!window.location.pathname.includes('student.html')) {
-                window.location.href = "/student.html";
+                window.location.href = "student.html";
                 return;
             }
         }
